@@ -3,7 +3,6 @@ import { getState } from '../core/state';
 import { BaseScene } from './BaseScene';
 import { CharacterView } from '../ui/CharacterView';
 import { DialogBox } from '../ui/DialogBox';
-import { centerX } from '../ui/layout';
 
 export class IntroScene extends BaseScene {
   private readonly avatar = new CharacterView();
@@ -33,7 +32,7 @@ export class IntroScene extends BaseScene {
       {
         label: 'Empezar en casa',
         variant: 'cta',
-        width: Math.min(240, this.m.cardW),
+        width: this.m.cardW,
         onTap: () => {
           void this.sm.goTo('casa');
         },
@@ -44,23 +43,20 @@ export class IntroScene extends BaseScene {
 
   protected layout(): void {
     const m = this.m;
-    const scale = m.isPhone ? 1.05 : 1.3;
-    this.avatar.position.set(m.w * 0.5, m.contentTop + (m.isPhone ? 70 : 90));
+    const scale = m.isPhone ? 0.95 : 1.15;
+    this.avatar.position.set(m.columnX + m.columnW / 2, m.contentTop + (m.isPhone ? 78 : 96));
     this.avatar.draw(getState().apariencia, scale);
-    if (getState().tieneMascota) this.avatar.drawPet(getState().tipoMascota);
+    if (getState().tieneMascota) this.avatar.drawPet(getState().tipoMascota, 0.5);
 
-    const dw = m.maxTextW;
+    const dw = m.cardW;
     this.dialog.resize(dw, undefined, m.bodySize);
-    this.dialog.position.set(
-      centerX(m.w, dw),
-      m.contentTop + (m.isPhone ? 140 : 180),
-    );
+    this.dialog.position.set(m.columnX, m.contentTop + (m.isPhone ? 168 : 200));
 
     this.footer.setActions(m, [
       {
         label: 'Empezar en casa',
         variant: 'cta',
-        width: Math.min(240, m.cardW),
+        width: m.cardW,
         onTap: () => {
           void this.sm.goTo('casa');
         },

@@ -13,10 +13,12 @@ import { DialogBox } from '../ui/DialogBox';
 import { Feedback } from '../ui/Feedback';
 import { OptionCard } from '../ui/OptionCard';
 import { ScrollArea } from '../ui/ScrollArea';
-import { centerX } from '../ui/layout';
+import { SceneCard, type SceneKind } from '../ui/SceneCard';
+import { riseIn } from '../motion/motion';
 
 export class DecisionScene extends BaseScene {
   private readonly avatar = new CharacterView();
+  private readonly stage: SceneCard;
   private readonly dialog = new DialogBox();
   private readonly scroll = new ScrollArea();
   private readonly decision: DecisionPuntuada;
@@ -37,6 +39,10 @@ export class DecisionScene extends BaseScene {
     this.decision = decision;
     this.nextScene = nextScene;
     this.titleFallback = titleFallback;
+    const kind: SceneKind =
+      decision.id === 'recreo' ? 'recreo' : decision.id === 'parque' ? 'parque' : 'puerta';
+    this.stage = new SceneCard(kind);
+    this.content.addChild(this.stage);
     this.content.addChild(this.avatar);
     this.content.addChild(this.dialog);
     this.content.addChild(this.scroll);
@@ -54,12 +60,19 @@ export class DecisionScene extends BaseScene {
 
   protected layout(): void {
     const m = this.m;
-    this.avatar.visible = !m.isPhone;
-    this.avatar.position.set(m.w * 0.12, m.contentTop + 70);
+    const sh = m.isPhone ? 148 : 176;
+    this.stage.resize(m.cardW, sh);
+    this.stage.position.set(m.columnX, m.contentTop);
 
-    const dw = m.maxTextW;
+    const s = getState();
+    const scale = m.isPhone ? 0.46 : 0.54;
+    this.avatar.draw(s.apariencia, scale);
+    if (s.tieneMascota) this.avatar.drawPet(s.tipoMascota, 0.42);
+    this.avatar.position.set(m.columnX + m.cardW * 0.34, m.contentTop + sh * 0.78);
+
+    const dw = m.cardW;
     this.dialog.resize(dw, undefined, m.bodySize);
-    this.dialog.position.set(centerX(m.w, dw), m.contentTop);
+    this.dialog.position.set(m.columnX, m.contentTop + sh + 12);
     this.dialog.visible = this.phase === 'choose';
 
     this.clearFooter();
@@ -67,8 +80,8 @@ export class DecisionScene extends BaseScene {
 
     const scrollTop =
       this.phase === 'choose'
-        ? m.contentTop + this.dialog.boxHeight + 10
-        : m.contentTop;
+        ? this.dialog.y + this.dialog.boxHeight + 10
+        : m.contentTop + sh + 8;
     const scrollH = Math.max(100, m.contentBottom - scrollTop);
     this.scroll.position.set(0, scrollTop);
     this.scroll.setViewport(m.w, scrollH);
@@ -93,7 +106,7 @@ export class DecisionScene extends BaseScene {
           void this.sm.goTo(this.nextScene);
         },
       });
-      fb.position.set(centerX(m.w, panelW), 12);
+      fb.position.set(m.columnX, 12);
       inner.addChild(fb);
       this.built = true;
       return;
@@ -114,9 +127,11 @@ export class DecisionScene extends BaseScene {
         height: 70,
         accent: accents[i] ?? PALETTE.celeste,
         fontSize: 18,
+        align: 'left',
         onToggle: () => void this.pick(op),
       });
-      card.position.set(centerX(m.w, m.cardW), y);
+      card.position.set(m.columnX, y);
+      riseIn(card, i * 70, 12);
       inner.addChild(card);
       y += card.boxH + 10;
     });

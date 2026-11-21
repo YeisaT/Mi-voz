@@ -1,5 +1,6 @@
 import { Container, Graphics, Text, TextStyle } from 'pixi.js';
 import { PALETTE } from '../config/palette';
+import { FONT_BODY } from './fonts';
 import { Button } from './Button';
 
 export type FeedbackOptions = {
@@ -19,8 +20,8 @@ export class Feedback extends Container {
     const text = new Text({
       text: body,
       style: new TextStyle({
-        fontFamily: 'Nunito, Trebuchet MS, sans-serif',
-        fontSize: 20,
+        fontFamily: FONT_BODY,
+        fontSize: 19,
         fill: PALETTE.texto,
         wordWrap: true,
         wordWrapWidth: w - pad * 2,
@@ -32,9 +33,10 @@ export class Feedback extends Container {
 
     const h = Math.max(170, text.height + 100);
     const bg = new Graphics();
-    bg.roundRect(0, 0, w, h, 18)
-      .fill({ color: PALETTE.verdeSuave, alpha: 0.95 })
-      .stroke({ color: PALETTE.calma, width: 3 });
+    bg.roundRect(0, 5, w, h, 24).fill({ color: PALETTE.texto, alpha: 0.05 });
+    bg.roundRect(0, 0, w, h, 24)
+      .fill({ color: 0xffffff })
+      .stroke({ color: PALETTE.borde, width: 2 });
     this.addChild(bg);
 
     text.position.set(w / 2, pad);
@@ -42,10 +44,10 @@ export class Feedback extends Container {
 
     const btnW = Math.min(200, w - 40);
     const btn = new Button({
-      label: 'Continuar',
+      label: 'Seguir',
       width: btnW,
-      height: 48,
-      variant: 'calma',
+      height: 56,
+      variant: 'cta',
       onTap: opts.onContinue,
     });
     btn.position.set((w - btnW) / 2, h - 62);

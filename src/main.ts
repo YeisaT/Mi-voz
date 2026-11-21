@@ -7,12 +7,14 @@ import { createColegioScene } from './scenes/Colegio';
 import { createParqueScene } from './scenes/Parque';
 import { FinalScene } from './scenes/Final';
 import { HEX } from './config/palette';
+import { bindMotion } from './motion/motion';
 
 /**
  * Init asíncrono PixiJS v8.
  * resizeTo: window | background: #FDF7EB
  */
 async function main(): Promise<void> {
+  await document.fonts.ready;
   const app = new Application();
 
   await app.init({
@@ -28,6 +30,7 @@ async function main(): Promise<void> {
   app.canvas.style.width = '100%';
   app.canvas.style.height = '100%';
 
+  bindMotion(app.ticker);
   const sm = new SceneManager(app);
 
   sm.register('creacion', () => new CreacionScene(sm));

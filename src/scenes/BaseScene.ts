@@ -4,6 +4,8 @@ import { PALETTE } from '../config/palette';
 import { HelpButton, HelpOverlay } from '../ui/HelpButton';
 import { getLayout, type LayoutMetrics } from '../ui/layout';
 import { FooterBar } from '../ui/FooterBar';
+import { FONT_BODY, FONT_DISPLAY } from '../ui/fonts';
+import { riseIn } from '../motion/motion';
 
 /**
  * Base común: fondo, título, ayuda, footer fijo y layout responsivo.
@@ -21,6 +23,7 @@ export abstract class BaseScene implements Scene {
   protected h = 600;
   protected m: LayoutMetrics = getLayout(800, 600);
   protected readonly sm: SceneManager;
+  private entered = false;
 
   constructor(sm: SceneManager) {
     this.sm = sm;
@@ -32,16 +35,15 @@ export abstract class BaseScene implements Scene {
     this.title = new Text({
       text: '',
       style: new TextStyle({
-        fontFamily: 'Nunito, Trebuchet MS, sans-serif',
-        fontSize: 26,
+        fontFamily: FONT_DISPLAY,
+        fontSize: 30,
         fill: PALETTE.texto,
-        fontWeight: '800',
-        align: 'center',
+        align: 'left',
         wordWrap: true,
-        wordWrapWidth: 700,
+        wordWrapWidth: 320,
       }),
     });
-    this.title.anchor.set(0.5, 0);
+    this.title.anchor.set(0, 0);
     this.ui.addChild(this.title);
 
     this.helpBtn = new HelpButton(() => this.toggleHelp(true));
@@ -63,23 +65,11 @@ export abstract class BaseScene implements Scene {
 
     this.bg.clear();
     this.bg.rect(0, 0, width, height).fill({ color: PALETTE.fondo });
-    this.bg.circle(width * 0.1, height * 0.16, Math.min(70, width * 0.11)).fill({
-      color: PALETTE.amarilloSuave,
-      alpha: 0.4,
-    });
-    this.bg.circle(width * 0.9, height * 0.2, Math.min(60, width * 0.09)).fill({
-      color: PALETTE.lila,
-      alpha: 0.3,
-    });
-    this.bg.circle(width * 0.82, height * 0.9, Math.min(80, width * 0.12)).fill({
-      color: PALETTE.celeste,
-      alpha: 0.25,
-    });
 
     this.title.style.fontSize = this.m.titleSize;
-    this.title.style.wordWrapWidth = Math.min(700, width - 96);
-    this.title.position.set(width / 2, this.m.titleTop);
-    this.helpBtn.position.set(width - 36, this.m.titleTop + 22);
+    this.title.style.wordWrapWidth = Math.max(120, this.m.columnW - 68);
+    this.title.position.set(this.m.columnX, this.m.titleTop);
+    this.helpBtn.position.set(this.m.columnX + this.m.columnW - 24, this.m.titleTop + 18);
     this.footer.position.set(0, this.m.footerY);
 
     if (this.helpLayer) {
@@ -88,6 +78,10 @@ export abstract class BaseScene implements Scene {
     }
 
     this.layout();
+    if (!this.entered) {
+      this.entered = true;
+      riseIn(this.content, 40, 18);
+    }
   }
 
   protected setTitle(text: string): void {
@@ -106,7 +100,7 @@ export abstract class BaseScene implements Scene {
     return new Text({
       text: value,
       style: new TextStyle({
-        fontFamily: 'Nunito, Trebuchet MS, sans-serif',
+        fontFamily: FONT_BODY,
         fontSize: Math.max(20, size),
         fill: PALETTE.texto,
         wordWrap: true,

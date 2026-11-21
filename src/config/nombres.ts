@@ -1,13 +1,13 @@
 /** Nombres sugeridos (personaje y mascota). Editables. */
 export const NOMBRES_PERSONAJE = [
   'Luna',
+  'Sol',
+  'Río',
+  'Nico',
+  'Sofi',
   'Mía',
-  'Valeria',
-  'Sofía',
-  'Camila',
   'Emma',
   'Nora',
-  'Isla',
 ] as const;
 
 export const NOMBRES_MASCOTA = [

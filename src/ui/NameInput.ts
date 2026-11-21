@@ -1,5 +1,6 @@
 import { Container, Graphics, Text, TextStyle } from 'pixi.js';
 import { HEX, PALETTE } from '../config/palette';
+import { FONT_BODY } from './fonts';
 
 export type NameInputOptions = {
   maxLength?: number;
@@ -16,7 +17,7 @@ export class NameInput extends Container {
   private readonly input: HTMLInputElement;
   private readonly maxLength: number;
   private readonly boxW: number;
-  private readonly boxH = 50;
+  private readonly boxH = 64;
   private mounted = false;
   private readonly onChange: NameInputOptions['onChange'];
 
@@ -28,7 +29,7 @@ export class NameInput extends Container {
 
     this.bg = new Graphics();
     this.bg
-      .roundRect(0, 0, this.boxW, this.boxH, 12)
+      .roundRect(0, 0, this.boxW, this.boxH, 20)
       .fill({ color: 0xffffff })
       .stroke({ color: PALETTE.acento, width: 2 });
     this.addChild(this.bg);
@@ -36,12 +37,12 @@ export class NameInput extends Container {
     this.hint = new Text({
       text: opts.placeholder ?? 'Escribe un nombre',
       style: new TextStyle({
-        fontFamily: 'Nunito, Trebuchet MS, sans-serif',
+        fontFamily: FONT_BODY,
         fontSize: 18,
-        fill: PALETTE.acento,
+        fill: PALETTE.textoSuave,
       }),
     });
-    this.hint.position.set(14, 14);
+    this.hint.position.set(18, 20);
     this.addChild(this.hint);
 
     this.input = document.createElement('input');
@@ -54,17 +55,17 @@ export class NameInput extends Container {
       position: 'fixed',
       zIndex: '30',
       border: `2px solid ${HEX.acento}`,
-      borderRadius: '12px',
-      padding: '10px 14px',
-      fontSize: '18px',
-      fontFamily: 'Nunito, Trebuchet MS, sans-serif',
+      borderRadius: '20px',
+      padding: '16px 18px',
+      fontSize: '20px',
+      fontFamily: FONT_BODY,
       color: HEX.texto,
       background: '#ffffff',
       outline: 'none',
       boxSizing: 'border-box',
       display: 'none',
       WebkitAppearance: 'none',
-    } as CSSStyleDeclaration);
+    });
 
     this.input.addEventListener('input', () => this.emitChange());
 

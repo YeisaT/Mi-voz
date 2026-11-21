@@ -33,9 +33,9 @@ export class FooterBar extends Container {
     this.bg.rect(0, 0, m.w, m.footerH).fill({ color: PALETTE.fondo, alpha: 0.97 });
     this.bg.rect(0, 0, m.w, 2).fill({ color: PALETTE.acento, alpha: 0.35 });
 
-    const btnH = m.isPhone ? 48 : 52;
+    const btnH = 56;
     const gap = 10;
-    const widths = items.map((it) => it.width ?? (items.length === 1 ? Math.min(240, m.cardW) : 140));
+    const widths = items.map((it) => it.width ?? (items.length === 1 ? m.cardW : 140));
     const total = widths.reduce((a, b) => a + b, 0) + gap * (items.length - 1);
     let x = centerX(m.w, total);
     const y = (m.footerH - btnH) / 2;

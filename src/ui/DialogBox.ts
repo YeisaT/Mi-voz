@@ -1,14 +1,15 @@
 import { Container, Graphics, Text, TextStyle } from 'pixi.js';
 import { PALETTE } from '../config/palette';
+import { FONT_BODY } from './fonts';
 
 export class DialogBox extends Container {
   private readonly bg: Graphics;
   private readonly text: Text;
   private boxW: number;
   private minH: number;
-  private pad = 16;
+  private pad = 18;
 
-  constructor(width = 640, minHeight = 88) {
+  constructor(width = 400, minHeight = 72) {
     super();
     this.boxW = width;
     this.minH = minHeight;
@@ -19,8 +20,8 @@ export class DialogBox extends Container {
     this.text = new Text({
       text: '',
       style: new TextStyle({
-        fontFamily: 'Nunito, Trebuchet MS, sans-serif',
-        fontSize: 20,
+        fontFamily: FONT_BODY,
+        fontSize: 19,
         fill: PALETTE.texto,
         wordWrap: true,
         wordWrapWidth: width - this.pad * 2,
@@ -32,9 +33,9 @@ export class DialogBox extends Container {
     this.redraw();
   }
 
-  setText(value: string, fontSize = 20): void {
+  setText(value: string, fontSize = 19): void {
     this.text.style.fontSize = fontSize;
-    this.text.style.lineHeight = fontSize + 8;
+    this.text.style.lineHeight = fontSize + 9;
     this.text.text = value;
     this.redraw();
   }
@@ -43,7 +44,7 @@ export class DialogBox extends Container {
     this.boxW = width;
     if (fontSize) {
       this.text.style.fontSize = fontSize;
-      this.text.style.lineHeight = fontSize + 8;
+      this.text.style.lineHeight = fontSize + 9;
     }
     this.text.style.wordWrapWidth = width - this.pad * 2;
     this.redraw();
@@ -57,8 +58,11 @@ export class DialogBox extends Container {
     const h = this.boxHeight;
     this.bg.clear();
     this.bg
-      .roundRect(0, 0, this.boxW, h, 16)
-      .fill({ color: 0xffffff, alpha: 0.95 })
-      .stroke({ color: PALETTE.acento, width: 2 });
+      .roundRect(0, 5, this.boxW, h, 24)
+      .fill({ color: PALETTE.texto, alpha: 0.05 });
+    this.bg
+      .roundRect(0, 0, this.boxW, h, 24)
+      .fill({ color: 0xffffff })
+      .stroke({ color: PALETTE.borde, width: 2 });
   }
 }

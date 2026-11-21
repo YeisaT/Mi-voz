@@ -13,7 +13,7 @@ import { DialogBox } from '../ui/DialogBox';
 import { Feedback } from '../ui/Feedback';
 import { OptionCard } from '../ui/OptionCard';
 import { ScrollArea } from '../ui/ScrollArea';
-import { centerX, colsForWidth } from '../ui/layout';
+import { SceneCard } from '../ui/SceneCard';
 
 type Bloque = 'familia' | 'confianza' | 'miedo' | 'bienestar' | 'puerta' | 'feedback';
 
@@ -52,6 +52,7 @@ const BIENESTAR = [
 export class CasaScene extends BaseScene {
   private bloque: Bloque = 'familia';
   private readonly scroll = new ScrollArea();
+  private readonly stage = new SceneCard('casa');
   private readonly avatar = new CharacterView();
   private readonly dialog = new DialogBox();
   private fadeAlpha = 1;
@@ -68,6 +69,7 @@ export class CasaScene extends BaseScene {
 
   constructor(sm: SceneManager) {
     super(sm);
+    this.content.addChild(this.stage);
     this.content.addChild(this.avatar);
     this.content.addChild(this.dialog);
     this.content.addChild(this.scroll);
@@ -84,20 +86,26 @@ export class CasaScene extends BaseScene {
 
   protected layout(): void {
     const m = this.m;
-    this.avatar.visible = !m.isPhone;
-    this.avatar.position.set(m.w * 0.12, m.contentTop + 70);
+    const sh = m.isPhone ? 120 : 146;
+    this.stage.resize(m.cardW, sh);
+    this.stage.position.set(m.columnX, m.contentTop);
+    const s = getState();
+    const scale = m.isPhone ? 0.4 : 0.48;
+    this.avatar.draw(s.apariencia, scale);
+    if (s.tieneMascota) this.avatar.drawPet(s.tipoMascota, 0.4);
+    this.avatar.position.set(m.columnX + m.cardW * 0.36, m.contentTop + sh * 0.8);
 
-    const dw = m.maxTextW;
+    const dw = m.cardW;
     this.dialog.resize(dw, undefined, m.bodySize);
-    this.dialog.position.set(centerX(m.w, dw), m.contentTop);
+    this.dialog.position.set(m.columnX, m.contentTop + sh + 10);
 
     if (!this.built) this.renderBloque();
     else this.applyFooter();
 
     const scrollTop =
       this.bloque === 'feedback'
-        ? m.contentTop
-        : m.contentTop + this.dialog.boxHeight + 10;
+        ? m.contentTop + sh + 8
+        : this.dialog.y + this.dialog.boxHeight + 10;
     const scrollH = Math.max(100, m.contentBottom - scrollTop);
     this.scroll.position.set(0, scrollTop);
     this.scroll.setViewport(m.w, scrollH);
@@ -132,6 +140,7 @@ export class CasaScene extends BaseScene {
 
   private renderBloque(): void {
     this.scroll.clearInner();
+    this.stage.setKind(this.bloque === 'puerta' || this.bloque === 'feedback' ? 'puerta' : 'casa');
     const n = getState().nombrePersonaje;
     if (this.bloque === 'familia') this.renderFamilia(n);
     else if (this.bloque === 'confianza') this.renderConfianza(n);
@@ -228,10 +237,10 @@ export class CasaScene extends BaseScene {
   ): number {
     const m = this.m;
     const inner = this.scroll.inner;
-    const cols = colsForWidth(m.w, 3);
-    const cardW = Math.min(160, (m.w - m.pad * 2) / cols - 8);
-    const totalW = cols * cardW + (cols - 1) * 8;
-    const startX = centerX(m.w, totalW);
+    const cols = m.columnW < 380 ? 2 : 3;
+    const gap = 8;
+    const cardW = (m.columnW - (cols - 1) * gap) / cols;
+    const startX = m.columnX;
     const cards: OptionCard[] = [];
     let y = 6;
 
@@ -251,11 +260,12 @@ export class CasaScene extends BaseScene {
           this.applyFooter();
         },
       });
-      card.position.set(startX + col * (cardW + 8), y + row * 58);
+      card.position.set(startX + col * (cardW + gap), y + row * (card.boxH + gap));
       inner.addChild(card);
       cards.push(card);
     });
-    return y + Math.ceil(labels.length / cols) * 58 + 8;
+    const rowH = (cards[0]?.boxH ?? 50) + gap;
+    return y + Math.ceil(labels.length / cols) * rowH + 8;
   }
 
   private placeList(
@@ -267,7 +277,7 @@ export class CasaScene extends BaseScene {
   ): number {
     const m = this.m;
     const inner = this.scroll.inner;
-    const cardW = Math.min(320, m.cardW);
+    const cardW = m.cardW;
     const cards: OptionCard[] = [];
     let y = y0;
 
@@ -279,13 +289,14 @@ export class CasaScene extends BaseScene {
         accent,
         selected: selected === label,
         fontSize: 18,
+        align: 'left',
         onToggle: () => {
           onPick(label, cards);
           cards.forEach((c, idx) => c.setSelected(idx === i));
           this.applyFooter();
         },
       });
-      card.position.set(centerX(m.w, cardW), y);
+      card.position.set(m.columnX, y);
       inner.addChild(card);
       cards.push(card);
       y += card.boxH + 8;
@@ -299,7 +310,7 @@ export class CasaScene extends BaseScene {
       this.m.bodySize,
     );
 
-    this.placeGrid(
+    const y0 = this.placeGrid(
       PERSONAS_CASA,
       (p) => this.familiaPersonas.has(p),
       PALETTE.celeste,
@@ -312,10 +323,9 @@ export class CasaScene extends BaseScene {
 
     const m = this.m;
     const inner = this.scroll.inner;
-    const y0 = 6 + Math.ceil(PERSONAS_CASA.length / colsForWidth(m.w, 3)) * 58 + 8;
     const label = this.makeText('¿Qué pasa entre ellas?', 20, m.maxTextW);
-    label.anchor.set(0.5, 0);
-    label.position.set(m.w / 2, y0);
+    label.anchor.set(0, 0);
+    label.position.set(m.columnX, y0);
     inner.addChild(label);
 
     this.placeList(
@@ -412,6 +422,7 @@ export class CasaScene extends BaseScene {
 
   private renderPuerta(n: string): void {
     const s = getState();
+    this.stage.setKind('puerta');
     this.setTitle(DECISION_PUERTA.titulo);
     this.dialog.setText(
       reemplazarNombres(DECISION_PUERTA.narracion, n, s.nombreMascota),
@@ -428,9 +439,10 @@ export class CasaScene extends BaseScene {
         height: 70,
         accent: accents[i] ?? PALETTE.celeste,
         fontSize: 18,
+        align: 'left',
         onToggle: () => void this.elegirDecision(op),
       });
-      card.position.set(centerX(m.w, m.cardW), y);
+      card.position.set(m.columnX, y);
       this.scroll.inner.addChild(card);
       y += card.boxH + 10;
     });
@@ -466,7 +478,7 @@ export class CasaScene extends BaseScene {
         void this.sm.goTo('colegio');
       },
     });
-    fb.position.set(centerX(this.m.w, panelW), 12);
+    fb.position.set(this.m.columnX, 12);
     this.scroll.inner.addChild(fb);
   }
 }

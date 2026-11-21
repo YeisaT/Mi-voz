@@ -2,6 +2,7 @@
 export const PALETTE = {
   fondo: 0xfdf7eb,
   texto: 0x3a0a45,
+  textoSuave: 0x64336e,
   acento: 0xb682bc,
   pielCalido: 0xf8c7b5,
   cta: 0xfdb632,
@@ -12,6 +13,10 @@ export const PALETTE = {
   lila: 0xdca1f7,
   amarilloSuave: 0xfddb7c,
   azul: 0x5fa9dd,
+  blanco: 0xffffff,
+  borde: 0xe6d5e8,
+  superficie: 0xfffbf3,
+  superficieAlta: 0xf5ead6,
 } as const;
 
 export const HEX = {
@@ -27,4 +32,8 @@ export const HEX = {
   lila: '#DCA1F7',
   amarilloSuave: '#FDDB7C',
   azul: '#5FA9DD',
+  textoSuave: '#64336E',
+  borde: '#E6D5E8',
+  superficie: '#FFFBF3',
+  superficieAlta: '#F5EAD6',
 } as const;

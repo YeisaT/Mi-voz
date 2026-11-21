@@ -16,22 +16,26 @@ export type LayoutMetrics = {
   contentH: number;
   cardW: number;
   maxTextW: number;
+  columnX: number;
+  columnW: number;
 };
 
 export function getLayout(w: number, h: number): LayoutMetrics {
   const isPhone = w < 560;
   const isTablet = w >= 560 && w < 900;
-  const pad = isPhone ? 16 : 24;
-  const titleSize = isPhone ? 22 : 28;
-  const bodySize = isPhone ? 20 : 22;
-  const titleTop = isPhone ? 12 : 16;
-  const contentTop = titleTop + (isPhone ? 44 : 52);
-  const footerH = isPhone ? 72 : 84;
+  const pad = isPhone ? 20 : 24;
+  const titleSize = isPhone ? 30 : 34;
+  const bodySize = isPhone ? 18 : 19;
+  const titleTop = 20;
+  const contentTop = titleTop + (isPhone ? 78 : 72);
+  const footerH = isPhone ? 88 : 96;
   const footerY = h - footerH;
   const contentBottom = footerY - 8;
   const contentH = Math.max(120, contentBottom - contentTop);
-  const maxTextW = Math.min(640, w - pad * 2);
-  const cardW = Math.min(560, w - pad * 2);
+  const columnW = Math.min(440, w - pad * 2);
+  const columnX = (w - columnW) / 2;
+  const maxTextW = columnW;
+  const cardW = columnW;
 
   return {
     w,
@@ -49,6 +53,8 @@ export function getLayout(w: number, h: number): LayoutMetrics {
     contentH,
     cardW,
     maxTextW,
+    columnX,
+    columnW,
   };
 }
 

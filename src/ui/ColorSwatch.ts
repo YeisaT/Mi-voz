@@ -16,7 +16,7 @@ export class ColorSwatch extends Container {
     this.addChild(this.bg);
     this.addChild(this.ring);
 
-    this.bg.circle(size / 2, size / 2, size / 2 - 4).fill({ color });
+    this.bg.circle(size / 2, size / 2, size / 2 - 6).fill({ color });
     this.redraw();
 
     this.eventMode = 'static';
@@ -34,8 +34,8 @@ export class ColorSwatch extends Container {
     this.ring.clear();
     if (this.selected) {
       this.ring
-        .circle(this.size / 2, this.size / 2, this.size / 2 - 1)
-        .stroke({ color: PALETTE.texto, width: 3 });
+        .circle(this.size / 2, this.size / 2, this.size / 2 - 2)
+        .stroke({ color: PALETTE.texto, width: 4 });
     }
   }
 }

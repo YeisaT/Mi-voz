@@ -1,4 +1,4 @@
-import { Container, Text } from 'pixi.js';
+import { Container, Graphics, Text } from 'pixi.js';
 import { BaseScene } from './BaseScene';
 import type { SceneManager } from '../core/SceneManager';
 import {
@@ -17,8 +17,9 @@ import { NameInput } from '../ui/NameInput';
 import { OptionCard } from '../ui/OptionCard';
 import { ColorSwatch } from '../ui/ColorSwatch';
 import { CharacterView, COLORES_APARIENCIA } from '../ui/CharacterView';
+import { PetCard } from '../ui/PetCard';
 import { ScrollArea } from '../ui/ScrollArea';
-import { centerX, colsForWidth } from '../ui/layout';
+import { centerX } from '../ui/layout';
 
 type Step = 'apariencia' | 'nombre' | 'mascota' | 'mascotaNombre';
 
@@ -44,7 +45,9 @@ export class CreacionScene extends BaseScene {
   private nombreMascotaOk = false;
   private built = false;
 
+  private readonly frame = new Graphics();
   private readonly avatar = new CharacterView();
+  private readonly flow = new Container();
   private readonly scroll = new ScrollArea();
   private nameInput: NameInput | null = null;
   private petNameInput: NameInput | null = null;
@@ -52,8 +55,14 @@ export class CreacionScene extends BaseScene {
 
   constructor(sm: SceneManager) {
     super(sm);
-    this.content.addChild(this.avatar);
+    this.scroll.inner.addChild(this.frame);
+    this.scroll.inner.addChild(this.avatar);
+    this.scroll.inner.addChild(this.flow);
     this.content.addChild(this.scroll);
+    this.scroll.onMove = () => {
+      this.nameInput?.syncDomPosition();
+      this.petNameInput?.syncDomPosition();
+    };
   }
 
   onEnter(): void {
@@ -68,19 +77,28 @@ export class CreacionScene extends BaseScene {
 
   protected layout(): void {
     const m = this.m;
-    const avatarScale = m.isPhone ? 0.85 : 1.05;
-    const avatarY = m.contentTop + (m.isPhone ? 58 : 70);
-    this.avatar.position.set(m.w * 0.5, avatarY);
+    const cardH = m.isPhone ? 168 : 186;
+    this.frame.clear();
+    this.frame
+      .roundRect(m.columnX, 4, m.columnW, cardH, 24)
+      .fill({ color: PALETTE.texto, alpha: 0.05 });
+    this.frame
+      .roundRect(m.columnX, 0, m.columnW, cardH, 24)
+      .fill({ color: PALETTE.superficie })
+      .stroke({ color: PALETTE.borde, width: 2 });
+
+    const avatarScale = m.isPhone ? 0.62 : 0.7;
+    this.avatar.position.set(m.columnX + m.columnW / 2, cardH * 0.58);
     this.avatar.draw({ peinado: this.peinado, color: this.color }, avatarScale);
     if (this.tipoMascota && (this.step === 'mascota' || this.step === 'mascotaNombre')) {
-      this.avatar.drawPet(this.tipoMascota, 0.7);
+      this.avatar.drawPet(this.tipoMascota, 1.05);
     } else {
       this.avatar.drawPet(null);
     }
 
-    const scrollTop = avatarY + (m.isPhone ? 70 : 90);
-    const scrollH = Math.max(100, m.contentBottom - scrollTop);
-    this.scroll.position.set(0, scrollTop);
+    this.flow.position.set(0, cardH + 16);
+    const scrollH = Math.max(120, m.contentBottom - m.contentTop);
+    this.scroll.position.set(0, m.contentTop);
     this.scroll.setViewport(m.w, scrollH);
 
     if (!this.built) {
@@ -99,7 +117,7 @@ export class CreacionScene extends BaseScene {
 
   private renderStep(): void {
     this.cleanupInputs();
-    this.scroll.clearInner();
+    this.flow.removeChildren().forEach((child) => child.destroy({ children: true }));
     this.nameInput = null;
     this.petNameInput = null;
     this.hintText = null;
@@ -127,7 +145,7 @@ export class CreacionScene extends BaseScene {
         {
           label: 'Siguiente',
           variant: 'cta',
-          width: Math.min(220, m.cardW),
+          width: m.cardW,
           onTap: () => {
             setApariencia({ peinado: this.peinado, color: this.color });
             this.go('nombre');
@@ -214,20 +232,21 @@ export class CreacionScene extends BaseScene {
   }
 
   private renderApariencia(): void {
-    this.setTitle('¿Cómo se ve tu personaje?');
-    const inner = this.scroll.inner;
+    this.setTitle('¿Cómo es tu personaje?');
+    const inner = this.flow;
     const m = this.m;
     let y = 4;
 
-    const tip = this.makeText('Elige peinado y color', m.bodySize, m.maxTextW);
-    tip.anchor.set(0.5, 0);
-    tip.position.set(m.w / 2, y);
+    const tip = this.makeText('Peinado', 18, m.columnW);
+    tip.anchor.set(0, 0);
+    tip.style.fill = PALETTE.textoSuave;
+    tip.position.set(m.columnX, y);
     inner.addChild(tip);
-    y += tip.height + 12;
+    y += tip.height + 8;
 
-    const peinadoLabels = ['Liso', 'Coletas', 'Sueltos'];
-    const cardW = Math.min(140, (m.w - m.pad * 2) / 3 - 8);
-    const startX = centerX(m.w, cardW * 3 + 16);
+    const peinadoLabels = ['Corto', 'Melena', 'Coleta'];
+    const cardW = (m.columnW - 16) / 3;
+    const startX = m.columnX;
     const peinadoCards: OptionCard[] = [];
 
     peinadoLabels.forEach((label, i) => {
@@ -251,9 +270,16 @@ export class CreacionScene extends BaseScene {
       inner.addChild(card);
       peinadoCards.push(card);
     });
-    y += 62;
+    y += 70;
 
-    const swatchSize = m.isPhone ? 52 : 60;
+    const ropa = this.makeText('Color de ropa', 18, m.columnW);
+    ropa.anchor.set(0, 0);
+    ropa.style.fill = PALETTE.textoSuave;
+    ropa.position.set(m.columnX, y);
+    inner.addChild(ropa);
+    y += ropa.height + 10;
+
+    const swatchSize = 56;
     const gap = 12;
     const total = COLORES_APARIENCIA.length * swatchSize + (COLORES_APARIENCIA.length - 1) * gap;
     let x = centerX(m.w, total);
@@ -277,21 +303,22 @@ export class CreacionScene extends BaseScene {
   }
 
   private renderNombre(): void {
-    this.setTitle('¿Cómo se llama tu personaje?');
-    const inner = this.scroll.inner;
+    this.setTitle('¿Cómo se llama?');
+    const inner = this.flow;
     const m = this.m;
     let y = 4;
 
-    const tip = this.makeText('Máximo 12 letras. Puedes inventarlo.', m.bodySize, m.maxTextW);
-    tip.anchor.set(0.5, 0);
-    tip.position.set(m.w / 2, y);
+    const tip = this.makeText('Escribe su nombre', 18, m.columnW);
+    tip.anchor.set(0, 0);
+    tip.style.fill = PALETTE.textoSuave;
+    tip.position.set(m.columnX, y);
     inner.addChild(tip);
     y += tip.height + 14;
 
-    const inputW = Math.min(340, m.cardW);
+    const inputW = m.cardW;
     this.nameInput = new NameInput({
       width: inputW,
-      placeholder: 'Nombre del personaje',
+      placeholder: 'Por ejemplo: Luna',
       onChange: (value, meta) => {
         this.nombre = value.trim();
         this.nombreOk = meta.valid;
@@ -299,12 +326,12 @@ export class CreacionScene extends BaseScene {
         if (this.hintText) this.hintText.visible = meta.wordCount >= 2;
       },
     });
-    this.nameInput.position.set(centerX(m.w, inputW), y);
+    this.nameInput.position.set(m.columnX, y);
     inner.addChild(this.nameInput);
     this.nameInput.mount();
     this.nameInput.showDom(true);
     if (this.nombre) this.nameInput.setValue(this.nombre);
-    y += 64;
+    y += 78;
 
     this.hintText = this.makeText(
       '¡Puedes poner un nombre inventado para tu personaje!',
@@ -325,7 +352,7 @@ export class CreacionScene extends BaseScene {
 
   private renderMascota(): void {
     this.setTitle('¿Tiene una mascota?');
-    const inner = this.scroll.inner;
+    const inner = this.flow;
     const m = this.m;
     let y = 4;
 
@@ -335,29 +362,33 @@ export class CreacionScene extends BaseScene {
     inner.addChild(tip);
     y += tip.height + 14;
 
-    const cols = colsForWidth(m.w, 3);
-    const cardW = Math.min(150, (m.w - m.pad * 2) / cols - 10);
-    const totalW = cols * cardW + (cols - 1) * 10;
-    const startX = centerX(m.w, totalW);
-    const petCards: OptionCard[] = [];
+    const cols = 2;
+    const gap = 12;
+    const cardW = (m.columnW - gap) / cols;
+    const cardH = 112;
+    const petCards: PetCard[] = [];
+    const opciones: { id: TipoMascota; label: string }[] = [
+      ...TIPOS_MASCOTA,
+      { id: null, label: 'Ninguna' },
+    ];
 
-    TIPOS_MASCOTA.forEach((t, i) => {
+    opciones.forEach((t, i) => {
       const col = i % cols;
       const row = Math.floor(i / cols);
-      const card = new OptionCard({
-        label: t.label,
-        width: cardW,
-        height: 52,
-        accent: PALETTE.verdeSuave,
-        selected: this.tipoMascota === t.id,
-        onToggle: () => {
-          this.tipoMascota = t.id;
-          petCards.forEach((c, idx) => c.setSelected(idx === i));
-          this.avatar.drawPet(t.id, 0.7);
-          this.footer.setEnabled(2, true);
-        },
+      const card = new PetCard(t.id, t.label, cardW, cardH, () => {
+        if (!t.id) {
+          clearMascota();
+          this.tipoMascota = null;
+          void this.sm.goTo('intro');
+          return;
+        }
+        this.tipoMascota = t.id;
+        petCards.forEach((c, idx) => c.setSelected(idx === i));
+        this.avatar.drawPet(t.id, 1.05);
+        this.footer.setEnabled(2, true);
       });
-      card.position.set(startX + col * (cardW + 10), y + row * 62);
+      card.setSelected(this.tipoMascota === t.id && t.id !== null);
+      card.position.set(m.columnX + col * (cardW + gap), y + row * (cardH + gap));
       inner.addChild(card);
       petCards.push(card);
     });
@@ -365,11 +396,11 @@ export class CreacionScene extends BaseScene {
 
   private renderMascotaNombre(): void {
     this.setTitle('¿Cómo se llama la mascota?');
-    const inner = this.scroll.inner;
+    const inner = this.flow;
     const m = this.m;
     let y = 4;
 
-    if (this.tipoMascota) this.avatar.drawPet(this.tipoMascota, 0.7);
+    if (this.tipoMascota) this.avatar.drawPet(this.tipoMascota, 1.05);
 
     const tip = this.makeText('Máximo 12 letras. También puedes inventarlo.', m.bodySize, m.maxTextW);
     tip.anchor.set(0.5, 0);
@@ -377,7 +408,7 @@ export class CreacionScene extends BaseScene {
     inner.addChild(tip);
     y += tip.height + 14;
 
-    const inputW = Math.min(340, m.cardW);
+    const inputW = m.cardW;
     this.petNameInput = new NameInput({
       width: inputW,
       placeholder: 'Nombre de la mascota',
@@ -388,12 +419,12 @@ export class CreacionScene extends BaseScene {
         if (this.hintText) this.hintText.visible = meta.wordCount >= 2;
       },
     });
-    this.petNameInput.position.set(centerX(m.w, inputW), y);
+    this.petNameInput.position.set(m.columnX, y);
     inner.addChild(this.petNameInput);
     this.petNameInput.mount();
     this.petNameInput.showDom(true);
     if (this.nombreMascota) this.petNameInput.setValue(this.nombreMascota);
-    y += 64;
+    y += 78;
 
     this.hintText = this.makeText('¡Puedes poner un nombre inventado!', 20, m.maxTextW);
     this.hintText.anchor.set(0.5, 0);

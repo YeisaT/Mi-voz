@@ -3,14 +3,16 @@ import { getState } from '../core/state';
 import { BaseScene } from './BaseScene';
 import { CharacterView } from '../ui/CharacterView';
 import { DialogBox } from '../ui/DialogBox';
-import { centerX } from '../ui/layout';
+import { SceneCard } from '../ui/SceneCard';
 
 export class FinalScene extends BaseScene {
+  private readonly stage = new SceneCard('final');
   private readonly avatar = new CharacterView();
   private readonly dialog = new DialogBox();
 
   constructor(sm: SceneManager) {
     super(sm);
+    this.content.addChild(this.stage);
     this.content.addChild(this.avatar);
     this.content.addChild(this.dialog);
   }
@@ -33,7 +35,7 @@ export class FinalScene extends BaseScene {
       {
         label: 'Jugar otra vez',
         variant: 'cta',
-        width: Math.min(240, this.m.cardW),
+        width: this.m.cardW,
         onTap: () => {
           void this.sm.goTo('creacion');
         },
@@ -44,23 +46,23 @@ export class FinalScene extends BaseScene {
 
   protected layout(): void {
     const m = this.m;
-    const scale = m.isPhone ? 1.05 : 1.3;
-    this.avatar.position.set(m.w * 0.5, m.contentTop + (m.isPhone ? 70 : 90));
+    const sh = m.isPhone ? 180 : 210;
+    this.stage.resize(m.cardW, sh);
+    this.stage.position.set(m.columnX, m.contentTop);
+    const scale = m.isPhone ? 0.52 : 0.62;
     this.avatar.draw(getState().apariencia, scale);
-    if (getState().tieneMascota) this.avatar.drawPet(getState().tipoMascota);
+    if (getState().tieneMascota) this.avatar.drawPet(getState().tipoMascota, 0.45);
+    this.avatar.position.set(m.columnX + m.cardW * 0.4, m.contentTop + sh * 0.78);
 
-    const dw = m.maxTextW;
+    const dw = m.cardW;
     this.dialog.resize(dw, undefined, m.bodySize);
-    this.dialog.position.set(
-      centerX(m.w, dw),
-      m.contentTop + (m.isPhone ? 140 : 180),
-    );
+    this.dialog.position.set(m.columnX, m.contentTop + sh + 12);
 
     this.footer.setActions(m, [
       {
         label: 'Jugar otra vez',
         variant: 'cta',
-        width: Math.min(240, m.cardW),
+        width: m.cardW,
         onTap: () => {
           void this.sm.goTo('creacion');
         },
