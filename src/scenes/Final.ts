@@ -1,5 +1,5 @@
 import type { SceneManager } from '../core/SceneManager';
-import { getState } from '../core/state';
+import { getState, resetSesionJuego } from '../core/state';
 import { BaseScene } from './BaseScene';
 import { CharacterView } from '../ui/CharacterView';
 import { DialogBox } from '../ui/DialogBox';
@@ -30,17 +30,6 @@ export class FinalScene extends BaseScene {
       `${s.nombrePersonaje} terminó su día.${petLine} Gracias por ayudar a decidir. Si algo se siente raro o triste, pedir ayuda está bien. El botón "?" siempre está ahí.`,
       this.m.bodySize,
     );
-
-    this.footer.setActions(this.m, [
-      {
-        label: 'Jugar otra vez',
-        variant: 'cta',
-        width: this.m.cardW,
-        onTap: () => {
-          void this.sm.goTo('creacion');
-        },
-      },
-    ]);
     this.layout();
   }
 
@@ -61,10 +50,19 @@ export class FinalScene extends BaseScene {
     this.footer.setActions(m, [
       {
         label: 'Jugar otra vez',
-        variant: 'cta',
-        width: m.cardW,
+        variant: 'suave',
+        width: Math.min(170, m.cardW * 0.42),
         onTap: () => {
+          resetSesionJuego();
           void this.sm.goTo('creacion');
+        },
+      },
+      {
+        label: 'Resultados',
+        variant: 'cta',
+        width: Math.min(180, m.cardW * 0.48),
+        onTap: () => {
+          void this.sm.goTo('dashboard');
         },
       },
     ]);

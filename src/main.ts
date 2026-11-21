@@ -6,6 +6,7 @@ import { CasaScene } from './scenes/Casa';
 import { createColegioScene } from './scenes/Colegio';
 import { createParqueScene } from './scenes/Parque';
 import { FinalScene } from './scenes/Final';
+import { DashboardScene } from './scenes/Dashboard';
 import { HEX } from './config/palette';
 import { bindMotion } from './motion/motion';
 
@@ -39,6 +40,7 @@ async function main(): Promise<void> {
   sm.register('colegio', () => createColegioScene(sm));
   sm.register('parque', () => createParqueScene(sm));
   sm.register('final', () => new FinalScene(sm));
+  sm.register('dashboard', () => new DashboardScene(sm));
 
   window.addEventListener('resize', () => sm.handleResize());
 

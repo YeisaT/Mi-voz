@@ -1,5 +1,12 @@
 import type { SceneManager } from '../core/SceneManager';
-import { addPuntaje, getState } from '../core/state';
+import {
+  getState,
+  registrarDecision,
+  setRespuestaBienestar,
+  setRespuestaConfianza,
+  setRespuestaFamilia,
+  setRespuestaMiedo,
+} from '../core/state';
 import { enviarDecision, enviarPreguntas } from '../core/api';
 import {
   DECISION_PUERTA,
@@ -185,6 +192,7 @@ export class CasaScene extends BaseScene {
   private async onContinue(): Promise<void> {
     const codigo = getState().codigo_acceso;
     if (this.bloque === 'familia') {
+      setRespuestaFamilia([...this.familiaPersonas], this.familiaDinamica);
       void enviarPreguntas({
         codigo_acceso: codigo,
         escena: 'casa',
@@ -198,6 +206,7 @@ export class CasaScene extends BaseScene {
       return;
     }
     if (this.bloque === 'confianza') {
+      setRespuestaConfianza([...this.confianza]);
       void enviarPreguntas({
         codigo_acceso: codigo,
         escena: 'casa',
@@ -208,6 +217,7 @@ export class CasaScene extends BaseScene {
       return;
     }
     if (this.bloque === 'miedo') {
+      setRespuestaMiedo(this.miedoPersona, this.miedoMotivo);
       void enviarPreguntas({
         codigo_acceso: codigo,
         escena: 'casa',
@@ -218,6 +228,7 @@ export class CasaScene extends BaseScene {
       return;
     }
     if (this.bloque === 'bienestar') {
+      setRespuestaBienestar(this.bienestar);
       void enviarPreguntas({
         codigo_acceso: codigo,
         escena: 'casa',
@@ -450,9 +461,17 @@ export class CasaScene extends BaseScene {
 
   private async elegirDecision(op: OpcionDecision): Promise<void> {
     this.chosen = op;
-    addPuntaje(op.puntos);
+    const s = getState();
+    registrarDecision({
+      escenario: 1,
+      id: DECISION_PUERTA.id,
+      titulo: DECISION_PUERTA.titulo,
+      opcion: op.id,
+      puntos: op.puntos,
+      textoOpcion: reemplazarNombres(op.texto, s.nombrePersonaje, s.nombreMascota),
+    });
     const res = await enviarDecision({
-      codigo_acceso: getState().codigo_acceso,
+      codigo_acceso: s.codigo_acceso,
       escenario: 1,
       opcion: op.id,
       puntos: op.puntos,

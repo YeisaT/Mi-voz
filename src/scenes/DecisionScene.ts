@@ -1,5 +1,5 @@
 import type { SceneManager } from '../core/SceneManager';
-import { addPuntaje, getState } from '../core/state';
+import { getState, registrarDecision } from '../core/state';
 import { enviarDecision } from '../core/api';
 import {
   reemplazarNombres,
@@ -140,9 +140,17 @@ export class DecisionScene extends BaseScene {
 
   private async pick(op: OpcionDecision): Promise<void> {
     this.chosen = op;
-    addPuntaje(op.puntos);
+    const s = getState();
+    registrarDecision({
+      escenario: this.decision.escenario,
+      id: this.decision.id,
+      titulo: this.decision.titulo,
+      opcion: op.id,
+      puntos: op.puntos,
+      textoOpcion: reemplazarNombres(op.texto, s.nombrePersonaje, s.nombreMascota),
+    });
     const res = await enviarDecision({
-      codigo_acceso: getState().codigo_acceso,
+      codigo_acceso: s.codigo_acceso,
       escenario: this.decision.escenario,
       opcion: op.id,
       puntos: op.puntos,
